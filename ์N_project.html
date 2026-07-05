@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สมุดผ่อนกลุ่ม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --navy:#2FBFA3;
+    --navy-deep:#1F8F82;
+    --bg:#F3F7F2;
+    --paper:#FFFFFF;
+    --paper-line:#E1E8E2;
+    --gold:#FF7A45;
+    --ink:#1B2430;
+    --ink-soft:#71786F;
+    --stamp-red:#E1483A;
+    --stamp-green:#2E9E6D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    background:var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(47,191,163,0.10), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(255,122,69,0.10), transparent 40%);
+    font-family:'Noto Sans Thai','IBM Plex Mono',sans-serif;
+    color:var(--ink);
+    padding:24px 14px 80px;
+  }
+  .book{
+    width:100%;
+    max-width:640px;
+  }
+  .cover{
+    background:linear-gradient(160deg, var(--navy), var(--navy-deep));
+    border-radius:14px;
+    padding:24px 22px 18px;
+    color:var(--paper);
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 20px 40px rgba(0,0,0,0.15);
+  }
+  .cover::before{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border:1px solid rgba(255,255,255,0.35);
+    border-radius:8px;
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:6px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+  }
+  .whoami{
+    font-family:'Noto Sans Thai',sans-serif;
+    letter-spacing:0;
+    background:rgba(255,255,255,0.15);
+    border:none;
+    color:#fff;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px;
+    margin:0 0 4px;
+    font-weight:700;
+  }
+  .sub{
+    font-size:12.5px;
+    color:rgba(255,255,255,0.75);
+    margin-bottom:16px;
+  }
+  .cover-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .stat{
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:8px;
+    padding:10px 14px;
+    flex:1;
+    min-width:104px;
+  }
+  .stat .n{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff;}
+  .stat .l{font-size:10.5px;color:rgba(255,255,255,0.75);margin-top:2px;}
+
+  .toolbar{
+    display:flex;
+    gap:8px;
+    margin:16px 0 10px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font-family:'Noto Sans Thai',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    border:none;
+    border-radius:8px;
+    padding:10px 14px;
+    cursor:pointer;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--gold);color:#fff;flex:1;}
+  .btn-ghost{background:var(--paper);color:var(--navy-deep);border:1px solid var(--paper-line);}
+  .btn-primary:hover, .btn-ghost:hover{opacity:.92;}
+
+  .panel{
+    background:var(--paper);
+    border:1px dashed var(--paper-line);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    display:none;
+  }
+  .panel.open{display:block;}
+  .panel label{
+    display:block;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .panel input{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    font-size:14px;
+    font-family:'IBM Plex Mono',monospace;
+    margin-bottom:10px;
+    background:#fff;
+  }
+  .panel-row{display:flex;gap:10px;}
+  .panel-row > div{flex:1;}
+
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .tab-btn{
+    flex:1;
+    text-align:center;
+    padding:8px 6px;
+    border-radius:7px;
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  .summary-toggle-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .link-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--navy-deep);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+
+  .people{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .person-card{
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    border-radius:9px;
+    padding:10px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .person-card .pname{font-weight:700;font-size:14px;}
+  .person-card .pmeta{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .person-card .psum{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;text-align:right;}
+  .person-card .psum.clear{color:var(--stamp-green);}
+
+  .month-box{
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    border-radius:9px;
+    padding:12px 14px;
+    margin-bottom:14px;
+    display:flex;
+    gap:14px;
+  }
+  .month-box .mcol{flex:1;}
+  .month-box .mcol .n{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:17px;color:var(--navy-deep);}
+  .month-box .mcol .l{font-size:11px;color:var(--ink-soft);}
+
+  .ledger{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .entry{
+    position:relative;
+    background:var(--paper);
+    border-radius:10px;
+    padding:16px 16px 14px;
+    box-shadow:0 6px 16px rgba(20,40,30,0.08);
+    overflow:hidden;
+  }
+  .entry::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:5px;
+    background:var(--gold);
+  }
+  .entry.overdue::before{background:var(--stamp-red);}
+  .entry.paid::before{background:var(--stamp-green);}
+  .entry.soon::before{background:#E8B93B;}
+  .entry-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .tab{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:1px;
+  }
+  .name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:17px;
+    margin:2px 0 2px;
+  }
+  .note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .amount{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:19px;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .due{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:right;
+    margin-top:2px;
+  }
+  .due.overdue-text{color:var(--stamp-red);font-weight:600;}
+  .due.soon-text{color:#B8860B;font-weight:600;}
+
+  .stamp{
+    position:absolute;
+    right:14px;
+    top:14px;
+    border:3px solid var(--stamp-green);
+    color:var(--stamp-green);
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    padding:3px 10px;
+    border-radius:6px;
+    transform:rotate(-10deg);
+    opacity:0.85;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    pointer-events:none;
+  }
+  .stamp.red{border-color:var(--stamp-red);color:var(--stamp-red);}
+
+  .entry-actions{
+    display:flex;
+    gap:6px;
+    margin-top:12px;
+    flex-wrap:wrap;
+  }
+  .mini-btn{
+    flex:1;
+    min-width:70px;
+    font-family:'Noto Sans Thai',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    padding:8px 6px;
+    border-radius:7px;
+    border:1px solid var(--paper-line);
+    background:#fff;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .mini-btn.pay{background:var(--stamp-green);color:#fff;border:none;}
+  .mini-btn.unpay{background:#fff;color:var(--ink-soft);}
+  .mini-btn.del{color:var(--stamp-red);}
+
+  .slip-thumb{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .slip-thumb img{
+    width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--paper-line);
+  }
+  .slip-thumb span{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+
+  .qr-wrap{
+    display:none;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed var(--paper-line);
+    text-align:center;
+  }
+  .qr-wrap.open{display:block;}
+  .qr-wrap img, .qr-wrap canvas{border-radius:6px;}
+  .qr-caption{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+
+  .history{
+    margin-top:16px;
+  }
+  .history-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:260px;
+    overflow-y:auto;
+  }
+  .history-item{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace;
+    padding:7px 10px;
+    background:var(--paper);
+    border-radius:6px;
+    border:1px solid var(--paper-line);
+  }
+  .history-item b{color:var(--ink);font-family:'Noto Sans Thai',sans-serif;}
+
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:40px 10px;
+  }
+
+  .modal-bg{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(14,23,48,0.55);
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:50;
+    overflow-y:auto;
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:var(--paper);
+    border-radius:12px;
+    padding:20px;
+    width:100%;
+    max-width:380px;
+    margin:auto;
+  }
+  .modal h3{
+    font-family:'Space Grotesk',sans-serif;
+    margin:0 0 14px;
+    font-size:18px;
+  }
+  .modal label{
+    display:block;
+    font-size:12px;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .modal input{
+    width:100%;
+    padding:10px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    font-size:14px;
+    margin-bottom:12px;
+    font-family:'Noto Sans Thai',sans-serif;
+  }
+  .modal-actions{display:flex;gap:8px;margin-top:4px;}
+  .modal-row{display:flex;gap:10px;}
+  .modal-row > div{flex:1;}
+
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--navy-deep);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:13px;
+    opacity:0;
+    transition:all .25s ease;
+    pointer-events:none;
+    z-index:60;
+    max-width:90vw;
+    text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="cover">
+    <div class="eyebrow">
+      <span>GROUP LEDGER · สมุดผ่อนกลุ่ม</span>
+      <button class="whoami" id="whoamiBtn">👤 <span id="whoamiName">ใส่ชื่อ</span></button>
+    </div>
+    <h1>สมุดผ่อนกลุ่ม</h1>
+    <div class="sub">ทุกคนที่มีลิงก์นี้เห็นรายการเดียวกัน — เตือนถึงกำหนด สแกนจ่ายได้เลย</div>
+    <div class="cover-row">
+      <div class="stat"><div class="n" id="statTotal">0</div><div class="l">รายการทั้งหมด</div></div>
+      <div class="stat"><div class="n" id="statOverdue">0</div><div class="l">เลยกำหนด</div></div>
+      <div class="stat"><div class="n" id="statSum">0</div><div class="l">ยอดค้างรวม (บาท)</div></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" id="addBtn">+ เพิ่มรายการผ่อน</button>
+    <button class="btn btn-ghost" id="settingsBtn">ตั้งค่า</button>
+    <button class="btn btn-ghost" id="notifyBtn">🔔</button>
+  </div>
+
+  <div class="panel" id="settingsPanel">
+    <label>เบอร์พร้อมเพย์สำหรับรับเงิน</label>
+    <input id="ppNumber" placeholder="0812345678" inputmode="numeric">
+    <label>เตือนล่วงหน้าก่อนถึงกำหนดกี่วัน</label>
+    <input id="reminderDays" type="number" min="0" placeholder="3" inputmode="numeric">
+    <button class="btn btn-primary" id="saveSettings" style="width:100%;">บันทึกการตั้งค่า</button>
+  </div>
+
+  <div class="summary-toggle-row">
+    <button class="link-btn" id="togglePeople">สรุปตามคน ▾</button>
+    <button class="link-btn" id="toggleMonth">สรุปรายเดือน ▾</button>
+    <button class="link-btn" id="toggleHistory">ประวัติการทำรายการ ▾</button>
+  </div>
+
+  <div class="panel" id="peoplePanel"><div class="people" id="peopleList"></div></div>
+  <div class="panel" id="monthPanel"></div>
+  <div class="panel" id="historyPanel"><div class="history-list" id="historyList"></div></div>
+
+  <div class="tabs">
+    <div class="tab-btn active" data-filter="all">ทั้งหมด</div>
+    <div class="tab-btn" data-filter="unpaid">ค้างอยู่</div>
+    <div class="tab-btn" data-filter="paid">จ่ายแล้ว</div>
+  </div>
+
+  <div class="ledger" id="ledger"></div>
+  <div class="empty" id="emptyState" style="display:none;">ยังไม่มีรายการผ่อน กด "+ เพิ่มรายการผ่อน" เพื่อเริ่มเลย</div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">เพิ่มรายการผ่อน</h3>
+    <label>ชื่อคนผ่อน</label>
+    <input id="fName" placeholder="เช่น เจน">
+    <label>ยอดที่ต้องจ่ายต่องวด (บาท)</label>
+    <input id="fAmount" type="number" placeholder="500" inputmode="decimal">
+    <label>วันครบกำหนดงวดแรก</label>
+    <input id="fDue" type="date">
+    <label>โน้ต (ไม่บังคับ)</label>
+    <input id="fNote" placeholder="เช่น การ์ด Bleach">
+    <div class="modal-row" id="multiRow">
+      <div>
+        <label>จำนวนงวด</label>
+        <input id="fCount" type="number" min="1" value="1" inputmode="numeric">
+      </div>
+      <div>
+        <label>ห่างกันงวดละ (วัน)</label>
+        <input id="fInterval" type="number" min="1" value="30" inputmode="numeric">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelAdd" style="flex:1;">ยกเลิก</button>
+      <button class="btn btn-primary" id="confirmAdd" style="flex:1;">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="slipFileInput" accept="image/*" style="display:none;">
+
+<div class="toast" id="toast"></div>
+
+<script>
+const K_ITEMS = 'installments-list';
+const K_SETTINGS = 'installments-settings';
+const K_HISTORY = 'installments-history';
+const K_MYNAME = 'my-name';
+
+let items = [];
+let settings = { ppNumber:'', reminderDays:3 };
+let history = [];
+let myName = '';
+let currentFilter = 'all';
+let editingId = null;
+let pendingPayId = null;
+let notifiedThisSession = false;
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// ---------- PromptPay EMV QR payload ----------
+function serializeTLV(data){
+  return data.map(d => d.id + String(d.value.length).padStart(2,'0') + d.value).join('');
+}
+function crc16(str){
+  let crc = 0xFFFF;
+  for (let i=0;i<str.length;i++){
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j=0;j<8;j++){
+      if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+      else crc <<= 1;
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4,'0');
+}
+function genPromptPayPayload(target, amount){
+  let t = (target||'').replace(/[^0-9]/g,'');
+  let type = '01';
+  if (/^0[0-9]{9}$/.test(t)) { t = '0066' + t.slice(1); }
+  else if (/^[0-9]{13}$/.test(t)) { type = '02'; }
+  const merchantInfo = serializeTLV([
+    {id:'00', value:'A000000677010111'},
+    {id:type, value:t}
+  ]);
+  const data = [
+    {id:'00', value:'01'},
+    {id:'01', value: amount ? '12' : '11'},
+    {id:'29', value: merchantInfo},
+    {id:'53', value:'764'},
+  ];
+  if (amount) data.push({id:'54', value: Number(amount).toFixed(2)});
+  data.push({id:'58', value:'TH'});
+  const partial = serializeTLV(data) + '6304';
+  return partial + crc16(partial);
+}
+
+// ---------- Storage ----------
+async function loadAll(){
+  try{ const r = await window.storage.get(K_ITEMS, true); items = r ? JSON.parse(r.value) : []; }
+  catch(e){ items = []; }
+  try{ const r = await window.storage.get(K_SETTINGS, true); settings = r ? JSON.parse(r.value) : {ppNumber:'',reminderDays:3}; }
+  catch(e){ settings = {ppNumber:'',reminderDays:3}; }
+  try{ const r = await window.storage.get(K_HISTORY, true); history = r ? JSON.parse(r.value) : []; }
+  catch(e){ history = []; }
+  try{ const r = await window.storage.get(K_MYNAME, false); myName = r ? JSON.parse(r.value) : ''; }
+  catch(e){ myName = ''; }
+
+  document.getElementById('ppNumber').value = settings.ppNumber || '';
+  document.getElementById('reminderDays').value = settings.reminderDays != null ? settings.reminderDays : 3;
+  document.getElementById('whoamiName').textContent = myName || 'ใส่ชื่อ';
+
+  renderAll();
+  checkDueNotifications();
+}
+async function saveItems(){ await window.storage.set(K_ITEMS, JSON.stringify(items), true); }
+async function saveSettings(){ await window.storage.set(K_SETTINGS, JSON.stringify(settings), true); }
+async function saveHistory(){
+  if (history.length > 200) history = history.slice(history.length - 200);
+  await window.storage.set(K_HISTORY, JSON.stringify(history), true);
+}
+async function saveMyName(){ await window.storage.set(K_MYNAME, JSON.stringify(myName), false); }
+
+function logAction(action, detail){
+  history.unshift({ ts: Date.now(), actor: myName || 'ไม่ระบุชื่อ', action, detail });
+  saveHistory();
+}
+
+// ---------- Helpers ----------
+function fmtMoney(n){ return Number(n).toLocaleString('th-TH', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+function fmtDate(iso){
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'});
+}
+function fmtDateTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('th-TH', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+}
+function daysUntil(iso){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(iso + 'T00:00:00');
+  return Math.round((due - today) / 86400000);
+}
+function isOverdue(item){ return !item.paid && daysUntil(item.due) < 0; }
+function isSoon(item){
+  if (item.paid) return false;
+  const d = daysUntil(item.due);
+  return d >= 0 && d <= (Number(settings.reminderDays)||0);
+}
+function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ---------- Image resize for slip ----------
+function resizeImage(file, maxW){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------- Rendering ----------
+function renderAll(){
+  renderStats();
+  renderPeople();
+  renderMonth();
+  renderHistory();
+  renderLedger();
+}
+
+function renderStats(){
+  const unpaid = items.filter(i => !i.paid);
+  const overdue = items.filter(isOverdue);
+  const sum = unpaid.reduce((s,i)=>s+Number(i.amount),0);
+  document.getElementById('statTotal').textContent = items.length;
+  document.getElementById('statOverdue').textContent = overdue.length;
+  document.getElementById('statSum').textContent = fmtMoney(sum);
+}
+
+function renderPeople(){
+  const byName = {};
+  items.forEach(i => {
+    if (!byName[i.name]) byName[i.name] = { unpaid:0, paidCount:0, unpaidCount:0 };
+    if (i.paid) byName[i.name].paidCount++;
+    else { byName[i.name].unpaid += Number(i.amount); byName[i.name].unpaidCount++; }
+  });
+  const names = Object.keys(byName).sort((a,b)=> byName[b].unpaid - byName[a].unpaid);
+  const list = document.getElementById('peopleList');
+  if (!names.length){ list.innerHTML = '<div class="empty" style="padding:14px;">ยังไม่มีข้อมูล</div>'; return; }
+  list.innerHTML = names.map(n => {
+    const d = byName[n];
+    const clear = d.unpaid === 0;
+    return `<div class="person-card">
+      <div><div class="pname">${escapeHtml(n)}</div><div class="pmeta">${d.unpaidCount} งวดค้าง · จ่ายแล้ว ${d.paidCount} งวด</div></div>
+      <div class="psum ${clear ? 'clear' : ''}">${clear ? '✓ ครบแล้ว' : '฿' + fmtMoney(d.unpaid)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMonth(){
+  const now = new Date();
+  const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const monthLabel = now.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+  let dueThisMonth = 0, collectedThisMonth = 0;
+  items.forEach(i => {
+    if (i.due && i.due.startsWith(ym)) dueThisMonth += Number(i.amount);
+    if (i.paid && i.paidAt){
+      const pd = new Date(i.paidAt);
+      const pym = pd.getFullYear() + '-' + String(pd.getMonth()+1).padStart(2,'0');
+      if (pym === ym) collectedThisMonth += Number(i.amount);
+    }
+  });
+  document.getElementById('monthPanel').innerHTML = `
+    <div style="font-size:12px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;">${monthLabel}</div>
+    <div class="month-box">
+      <div class="mcol"><div class="n">฿${fmtMoney(dueThisMonth)}</div><div class="l">ยอดที่ควรได้เดือนนี้</div></div>
+      <div class="mcol"><div class="n">฿${fmtMoney(collectedThisMonth)}</div><div class="l">เก็บได้แล้วเดือนนี้</div></div>
+    </div>
+  `;
+}
+
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  if (!history.length){ list.innerHTML = '<div class="empty" style="padding:14px;">ยังไม่มีประวัติ</div>'; return; }
+  list.innerHTML = history.slice(0,40).map(h => {
+    return `<div class="history-item"><b>${escapeHtml(h.actor)}</b> ${escapeHtml(h.action)} — ${escapeHtml(h.detail)} <span style="opacity:0.6;">· ${fmtDateTime(h.ts)}</span></div>`;
+  }).join('');
+}
+
+function renderLedger(){
+  const ledger = document.getElementById('ledger');
+  let filtered = items;
+  if (currentFilter === 'unpaid') filtered = items.filter(i => !i.paid);
+  if (currentFilter === 'paid') filtered = items.filter(i => i.paid);
+  const sorted = [...filtered].sort((a,b)=> a.due.localeCompare(b.due));
+  ledger.innerHTML = '';
+  document.getElementById('emptyState').style.display = sorted.length ? 'none' : 'block';
+
+  sorted.forEach((item, idx) => {
+    const overdue = isOverdue(item);
+    const soon = isSoon(item);
+    const el = document.createElement('div');
+    el.className = 'entry' + (item.paid ? ' paid' : overdue ? ' overdue' : soon ? ' soon' : '');
+    el.innerHTML = `
+      <div class="entry-top">
+        <div>
+          <div class="tab">งวดที่ ${String(idx+1).padStart(2,'0')}</div>
+          <div class="name">${escapeHtml(item.name)}</div>
+          ${item.note ? `<div class="note">${escapeHtml(item.note)}</div>` : ''}
+        </div>
+        <div>
+          <div class="amount">฿${fmtMoney(item.amount)}</div>
+          <div class="due ${overdue ? 'overdue-text' : soon ? 'soon-text' : ''}">${overdue ? 'เลยกำหนด · ' : soon ? 'ใกล้ครบกำหนด · ' : 'ครบกำหนด '}${fmtDate(item.due)}</div>
+        </div>
+      </div>
+      ${item.paid ? '<div class="stamp">จ่ายแล้ว</div>' : overdue ? '<div class="stamp red">เลยกำหนด</div>' : ''}
+      <div class="entry-actions">
+        ${item.paid
+          ? `<button class="mini-btn unpay" data-act="unpay" data-id="${item.id}">ยกเลิกจ่ายแล้ว</button>`
+          : `<button class="mini-btn pay" data-act="pay" data-id="${item.id}">✓ จ่ายแล้ว</button>
+             <button class="mini-btn" data-act="qr" data-id="${item.id}">QR</button>`
+        }
+        <button class="mini-btn" data-act="share" data-id="${item.id}">แชร์</button>
+        <button class="mini-btn" data-act="edit" data-id="${item.id}">แก้ไข</button>
+        <button class="mini-btn del" data-act="del" data-id="${item.id}">ลบ</button>
+      </div>
+      ${item.slip ? `<div class="slip-thumb"><img src="${item.slip}" data-act="viewslip" data-id="${item.id}"><span>สลิปที่แนบไว้</span></div>` : ''}
+      <div class="qr-wrap" id="qr-${item.id}">
+        <div id="qrcanvas-${item.id}" style="display:inline-block;"></div>
+        <div class="qr-caption">สแกนจ่าย ฿${fmtMoney(item.amount)} เข้าเบอร์ ${settings.ppNumber || '(ยังไม่ตั้งเบอร์)'}</div>
+      </div>
+    `;
+    ledger.appendChild(el);
+  });
+}
+
+// ---------- Ledger action delegation ----------
+document.getElementById('ledger').addEventListener('click', async (e)=>{
+  const imgTarget = e.target.closest('img[data-act="viewslip"]');
+  if (imgTarget){ window.open(imgTarget.src, '_blank'); return; }
+
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const act = btn.dataset.act;
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+
+  if (act === 'pay'){
+    pendingPayId = id;
+    document.getElementById('slipFileInput').value = '';
+    document.getElementById('slipFileInput').click();
+  } else if (act === 'unpay'){
+    item.paid = false;
+    item.paidAt = null;
+    await saveItems();
+    logAction('ยกเลิกสถานะจ่ายแล้ว', `${item.name} ฿${fmtMoney(item.amount)}`);
+    renderAll();
+  } else if (act === 'del'){
+    if (!confirm(`ลบรายการของ ${item.name} ฿${fmtMoney(item.amount)}?`)) return;
+    items = items.filter(i => i.id !== id);
+    await saveItems();
+    logAction('ลบรายการ', `${item.name} ฿${fmtMoney(item.amount)}`);
+    renderAll();
+  } else if (act === 'edit'){
+    openEditModal(item);
+  } else if (act === 'share'){
+    const text = `แจ้งเตือนผ่อน: ${item.name} ค้าง ฿${fmtMoney(item.amount)} ครบกำหนด ${fmtDate(item.due)}${settings.ppNumber ? ' (พร้อมเพย์ ' + settings.ppNumber + ')' : ''}`;
+    if (navigator.share){
+      try{ await navigator.share({ text }); }catch(e){}
+    } else if (navigator.clipboard){
+      await navigator.clipboard.writeText(text);
+      toast('คัดลอกข้อความแล้ว เอาไปวางในแชทได้เลย');
+    }
+  } else if (act === 'qr'){
+    const wrap = document.getElementById(`qr-${id}`);
+    const wasOpen = wrap.classList.contains('open');
+    document.querySelectorAll('.qr-wrap.open').forEach(w => w.classList.remove('open'));
+    if (!wasOpen){
+      wrap.classList.add('open');
+      const holder = document.getElementById(`qrcanvas-${id}`);
+      holder.innerHTML = '';
+      delete holder.dataset.rendered;
+      if (!settings.ppNumber){
+        holder.innerHTML = '<div style="font-size:12px;color:#E1483A;">ยังไม่ได้ตั้งเบอร์พร้อมเพย์ กดปุ่ม "ตั้งค่า" ก่อน</div>';
+      } else {
+        const payload = genPromptPayPayload(settings.ppNumber, item.amount);
+        new QRCode(holder, { text: payload, width: 180, height: 180, colorDark:'#1B2430', colorLight:'#FFFFFF' });
+      }
+    }
+  }
+});
+
+document.getElementById('slipFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const item = items.find(i => i.id === pendingPayId);
+  if (!item) return;
+  if (file){
+    try{
+      item.slip = await resizeImage(file, 480);
+    }catch(err){ item.slip = null; }
+  }
+  item.paid = true;
+  item.paidAt = Date.now();
+  await saveItems();
+  logAction('บันทึกว่าจ่ายแล้ว', `${item.name} ฿${fmtMoney(item.amount)}${file ? ' (แนบสลิป)' : ''}`);
+  renderAll();
+  toast(`บันทึกว่า ${item.name} จ่ายแล้ว`);
+  pendingPayId = null;
+});
+
+// ---------- Filter tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderLedger();
+  });
+});
+
+// ---------- Collapsible panels ----------
+function wireToggle(btnId, panelId, label){
+  const btn = document.getElementById(btnId);
+  const panel = document.getElementById(panelId);
+  btn.addEventListener('click', () => {
+    const open = panel.classList.toggle('open');
+    btn.textContent = `${label} ${open ? '▴' : '▾'}`;
+  });
+}
+wireToggle('togglePeople', 'peoplePanel', 'สรุปตามคน');
+wireToggle('toggleMonth', 'monthPanel', 'สรุปรายเดือน');
+wireToggle('toggleHistory', 'historyPanel', 'ประวัติการทำรายการ');
+
+// ---------- Add / Edit modal ----------
+function openAddModal(){
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'เพิ่มรายการผ่อน';
+  document.getElementById('fName').value = '';
+  document.getElementById('fAmount').value = '';
+  document.getElementById('fDue').valueAsDate = new Date();
+  document.getElementById('fNote').value = '';
+  document.getElementById('fCount').value = 1;
+  document.getElementById('fInterval').value = 30;
+  document.getElementById('multiRow').style.display = 'flex';
+  document.getElementById('modalBg').classList.add('open');
+}
+function openEditModal(item){
+  editingId = item.id;
+  document.getElementById('modalTitle').textContent = 'แก้ไขรายการ';
+  document.getElementById('fName').value = item.name;
+  document.getElementById('fAmount').value = item.amount;
+  document.getElementById('fDue').value = item.due;
+  document.getElementById('fNote').value = item.note || '';
+  document.getElementById('multiRow').style.display = 'none';
+  document.getElementById('modalBg').classList.add('open');
+}
+document.getElementById('addBtn').onclick = openAddModal;
+document.getElementById('cancelAdd').onclick = () => document.getElementById('modalBg').classList.remove('open');
+
+document.getElementById('confirmAdd').onclick = async () => {
+  const name = document.getElementById('fName').value.trim();
+  const amount = parseFloat(document.getElementById('fAmount').value);
+  const due = document.getElementById('fDue').value;
+  const note = document.getElementById('fNote').value.trim();
+  if (!name || !amount || !due){
+    toast('กรอกชื่อ ยอดเงิน และวันครบกำหนดให้ครบก่อนนะ');
+    return;
+  }
+
+  if (editingId){
+    const item = items.find(i => i.id === editingId);
+    item.name = name; item.amount = amount; item.due = due; item.note = note;
+    await saveItems();
+    logAction('แก้ไขรายการ', `${name} ฿${fmtMoney(amount)}`);
+    toast('บันทึกการแก้ไขแล้ว');
+  } else {
+    const count = Math.max(1, parseInt(document.getElementById('fCount').value) || 1);
+    const interval = Math.max(1, parseInt(document.getElementById('fInterval').value) || 30);
+    const baseDate = new Date(due + 'T00:00:00');
+    for (let n = 0; n < count; n++){
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() + interval * n);
+      const dueStr = d.toISOString().slice(0,10);
+      items.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+        name, amount, due: dueStr,
+        note: count > 1 ? `${note ? note + ' · ' : ''}งวด ${n+1}/${count}` : note,
+        paid:false, paidAt:null, slip:null
+      });
+    }
+    await saveItems();
+    logAction('เพิ่มรายการ', `${name} ฿${fmtMoney(amount)}${count>1 ? ' × '+count+' งวด' : ''}`);
+    toast(count > 1 ? `เพิ่ม ${count} งวดแล้ว` : 'เพิ่มรายการแล้ว');
+  }
+  document.getElementById('modalBg').classList.remove('open');
+  renderAll();
+};
+
+// ---------- Settings ----------
+document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsPanel').classList.toggle('open');
+document.getElementById('saveSettings').onclick = async () => {
+  settings.ppNumber = document.getElementById('ppNumber').value.trim();
+  settings.reminderDays = parseInt(document.getElementById('reminderDays').value) || 0;
+  await saveSettings();
+  renderAll();
+  toast('บันทึกการตั้งค่าแล้ว');
+};
+
+// ---------- Who am I ----------
+document.getElementById('whoamiBtn').onclick = async () => {
+  const n = prompt('ใส่ชื่อของคุณ (ใช้แสดงในประวัติการทำรายการ)', myName || '');
+  if (n === null) return;
+  myName = n.trim();
+  await saveMyName();
+  document.getElementById('whoamiName').textContent = myName || 'ใส่ชื่อ';
+  toast('บันทึกชื่อแล้ว');
+};
+
+// ---------- Notifications ----------
+document.getElementById('notifyBtn').onclick = async () => {
+  if (!('Notification' in window)){ toast('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted'){
+    toast('เปิดแจ้งเตือนแล้ว จะเตือนตอนเปิดแอปนี้ค้างไว้');
+    checkDueNotifications(true);
+  } else {
+    toast('ไม่ได้รับอนุญาตให้แจ้งเตือน');
+  }
+};
+
+function checkDueNotifications(force){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const overdueList = items.filter(isOverdue);
+  const soonList = items.filter(isSoon);
+  if ((overdueList.length || soonList.length) && (force || !notifiedThisSession)){
+    if (overdueList.length){
+      new Notification('เลยกำหนดจ่ายแล้ว', { body: overdueList.map(i => `${i.name} ฿${fmtMoney(i.amount)}`).join(', ') });
+    }
+    if (soonList.length){
+      new Notification('ใกล้ถึงกำหนดจ่าย', { body: soonList.map(i => `${i.name} ฿${fmtMoney(i.amount)}`).join(', ') });
+    }
+    notifiedThisSession = true;
+  }
+}
+setInterval(checkDueNotifications, 1000 * 60 * 30);
+
+loadAll();
+</script>
+</body>
+</html>
